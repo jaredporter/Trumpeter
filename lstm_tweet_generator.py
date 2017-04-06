@@ -106,8 +106,13 @@ class Trumpeter(filepath):
 
 
     def one_hot_encode(self):
+        """
+        One hot encode the input and output so it's usable in a NN.
+        """
+        # Create empty matrices for Xs and ys
         self.X = np.zeros((self.n_seq, self.max_seq, self.n_chars), dtype=np.bool)
         self.y = np.zeros((self.n_seq, self.n_chars), dtype=np.bool)
+        # Loop through and update indicies of Xs and ys to one
         for i, sequence in enumerate(self.sequences):
             for t, char in enumerate(sequence):
                 self.X[i, t, self.char_to_idx[char]] = 1
