@@ -28,8 +28,14 @@ class Trumpeter(filepath):
         self.chars = None
         self.char_to_idx = None
         self.idx_to_char = None
-        self.N_CHARS = None
+        self.n_chars = None
         self.corp_len
+        self.seq_step
+        self.max_seq
+        self.sequences = []
+        self.next_chars = []
+        self.X = None
+        self.y = None
 
 
     def trump_loader(self):
@@ -82,16 +88,27 @@ class Trumpeter(filepath):
         self.idx_to_char = {i: c for i, c in enumerate(self.chars)}
 
 
-    def sentence_creation(self, max_seq, seq_step, n_seq):
+    def sentence_creation(self):
         """
         Create the sentences for training. Keras docs use these params:
-            seq_len = 40
+            max_seq = 40
             seq_step = 3
         Making steps or lengths shorter will result in longer training
         time, but on a GPU it shouldn't be prohibitively expensive.
         """
 
-        sequences, next_chars = [], []
-        for i in range(0, (self.corp_len - seq_len), seq_step):
-            sequences.append(self.tweets[i:i + seq_len])
-            next_chars.append(self.tweets[i + seq_len])
+        for i in range(0, (self.corp_len - self.max_seq), self.seq_step):
+            self.sequences.append(self.tweets[i:i + self.max_seq])
+            self.next_chars.append(self.tweets[i + self.max_seq])
+        self.n_seq = len(self.sequences)
+        self.sequences = np.array(self.sequences)
+        self.next_chars = np.array(self.next_chars)
+
+
+    def one_hot_encode(self):
+        self.X = np.zeros((self.n_seq, self.max_seq, self.n_chars), dtype=np.bool)
+        self.y = np.zeros((self.n_seq, self.n_chars), dtype=np.bool)
+        for i, sequence in enumerate(self.sequences):
+            for t, char in enumerate(sequence):
+                self.X[i, t, self.char_to_idx[char]] = 1
+        self.y[i, self.char_to_idx[self.next_chars[i]]] = 1
