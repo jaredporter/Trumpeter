@@ -26,7 +26,10 @@ class Trumpeter(filepath):
         self.filepath = filepath
         self.last_tweet = None
         self.chars = None
-        self.char_map = None
+        self.char_to_idx = None
+        self.idx_to_char = None
+        self.N_CHARS = None
+        self.corp_len
 
 
     def trump_loader(self):
@@ -47,13 +50,48 @@ class Trumpeter(filepath):
             text = reduce(lambda t,s: t.replace(s, ''), chain(urls, users), text)
             self.tweets.append(text)
 
+        # # Remove tweets with sebsites in them. Use if above doesn't work
+        # self.tweets = [t for t in self.tweets if 'http' not in t]
+
+        # Convert list into single corpus
+        self.tweets = ' '.join(self.tweets)
+        self.corp_len = len(self.tweets)
+
         self.last_tweet = twts[0]['created_at']
 
 
-    def data_prep(self):
+    def create_mappings(self):
+        """
+        Create the character maps
+        """
+        # Count frequency of characters
         counter = Counter(" ".join(self.tweets))
+        # Remove infrequent characters.
         self.chars = [k for k, v in counter.items() if v > 9]
+
+        # Make sure that didn't remove standard characters
         for i in string.ascii_letters:
             if i not in self.chars:
                 self.chars.append(i)
+        
         self.chars = sorted(self.chars)
+        # Number of unique characters
+        self.N_CHARS = len(self.chars)
+        self.char_to_idx = {c: i for i, c in enumerate(self.chars)}
+        # Create the actual mappings
+        self.idx_to_char = {i: c for i, c in enumerate(self.chars)}
+
+
+    def sentence_creation(self, max_seq, seq_step, n_seq):
+        """
+        Create the sentences for training. Keras docs use these params:
+            seq_len = 40
+            seq_step = 3
+        Making steps or lengths shorter will result in longer training
+        time, but on a GPU it shouldn't be prohibitively expensive.
+        """
+
+        sequences, next_chars = [], []
+        for i in range(0, (self.corp_len - seq_len), seq_step):
+            sequences.append(self.tweets[i:i + seq_len])
+            next_chars.append(self.tweets[i + seq_len])
