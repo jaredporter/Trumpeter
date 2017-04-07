@@ -162,9 +162,18 @@ class Trumpeter(filepath):
 
 
     def generate_tweets(self, n_tweets=10):
+        """
+        This is where the magic happens. Generate tweets based on the
+        sequences from the corpus. Eventually this will be able to take
+        inputs from new tweets and generate things, but one thing at a
+        time
+        """
+        # Load in our model's weights
         self.model.load_weights('weights.hdf5')
+        # This finds a space in the corpus and then makes the seed from there
         spaces_in_corpus = np.array([idx for idx in range(self.corp_len) 
             if self.corpus[idx] == ' '])
+        # Loop through and make the tweets, on e letter at a time
         for i in range(1, n_tweets + 1):
             begin = np.random.choice(spaces_in_corpus)
             tweet = u''
@@ -181,10 +190,15 @@ class Trumpeter(filepath):
 
                 tweet += next_char
                 sequence = sequence[1:] + next_char
+            # Append each tweet to our list of generated tweets
             self.generated_tweets.append(tweet)
 
 
     def evaluation(self):
+        """
+        Evaluate the cosine distance between generated tweets and the
+        sequences from the corpus.
+        """
         vectoriser = TfidfVectorizer()
         tfidf = vectoriser.fit_transform(self.sequences)
         Xval = vectorizer.transform(self.generated_tweets)
