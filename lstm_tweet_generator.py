@@ -12,6 +12,7 @@ from ftfy import fix_text
 import string
 from itertools import chain
 from six.moves import reduce
+from sklearn import TfidfVectorizer()
 
 
 class Trumpeter(filepath):
@@ -23,7 +24,8 @@ class Trumpeter(filepath):
 
     def __init__:
         self.seed = np.random.seed(42) 
-        self.tweets = []
+        self.corpus = []
+        self.generated_tweets = []
         self.filepath = filepath
         self.last_tweet = None
         self.chars = None
@@ -52,18 +54,18 @@ class Trumpeter(filepath):
             twts = json.load(f)
         
         # Remove all handles and urls and add it to the list of clean tweets
-        for text, entities in ((fix_text(t['text']), t['entities']) for t in tweets):
+        for text, entities in ((fix_text(t['text']), t['entities']) for t in twts):
             urls = (e['url'] for e in entities['urls'])
             users = ("@"+e['screen_name'] for e in entities['user_mentions'])
             text = reduce(lambda t,s: t.replace(s, ''), chain(urls, users), text)
-            self.tweets.append(text)
+            self.corpus.append(text)
 
         # # Remove tweets with sebsites in them. Use if above doesn't work
-        # self.tweets = [t for t in self.tweets if 'http' not in t]
+        # self.corpus = [t for t in self.corpus if 'http' not in t]
 
         # Convert list into single corpus
-        self.tweets = ' '.join(self.tweets)
-        self.corp_len = len(self.tweets)
+        self.corpus = ' '.join(self.corpus)
+        self.corp_len = len(self.corpus)
 
         self.last_tweet = twts[0]['created_at']
 
@@ -73,7 +75,7 @@ class Trumpeter(filepath):
         Create the character maps
         """
         # Count frequency of characters
-        counter = Counter(" ".join(self.tweets))
+        counter = Counter(" ".join(self.corpus))
         # Remove infrequent characters.
         self.chars = [k for k, v in counter.items() if v > 9]
 
@@ -100,8 +102,8 @@ class Trumpeter(filepath):
         """
 
         for i in range(0, (self.corp_len - self.max_seq), self.seq_step):
-            self.sequences.append(self.tweets[i:i + self.max_seq])
-            self.next_chars.append(self.tweets[i + self.max_seq])
+            self.sequences.append(self.corpus[i:i + self.max_seq])
+            self.next_chars.append(self.corpus[i + self.max_seq])
         self.n_seq = len(self.sequences)
         self.sequences = np.array(self.sequences)
         self.next_chars = np.array(self.next_chars)
@@ -146,4 +148,44 @@ class Trumpeter(filepath):
 
 
     def sample(self, preds):
-        
+        """
+        Not sure where preds comes from. Need to figure it out. 
+        But this will give me the most likely character to occur next.
+        """
+        # TODO: fix this whole damn function
+        preds = np.asanyarray(preds).astype('float64') 
+        preds = np.log(preds) / 0.2
+        exp_preds = np.exp(preds)
+        preds = exp_preds / np.sum(exp_preds)
+        probas = np.random.multinomial(1, preds, 1)
+        return np.argmax(probas)
+
+
+    def generate_tweets(self, n_tweets=10):
+        self.model.load_weights('weights.hdf5')
+        spaces_in_corpus = np.array([idx for idx in range(self.corp_len) 
+            if self.corpus[idx] == ' '])
+        for i in range(1, n_tweets + 1):
+            begin = np.random.choice(spaces_in_corpus)
+            tweet = u''
+            sequence = self.corpus[begin:begin + self.max_seq]
+            tweet += sequence
+            for _ in range(100):
+                x = np.zeros((1, self.max_seq, self.n_chars))
+                for t, char in enumerate(sequence):
+                    x[0, t, self.char_to_idx[char]] = 1.0
+
+                preds = self.model.predict(x, verbose = 0)[0]
+                next_idx = self.sample(preds)
+                next_char = self.idx_to_char[next_idx]
+
+                tweet += next_char
+                sequence = sequence[1:] + next_char
+            self.generated_tweets.append(tweet)
+
+
+    def evaluation(self):
+        vectoriser = TfidfVectorizer()
+        tfidf = vectoriser.fit_transform(self.sequences)
+        Xval = vectorizer.transform(self.generated_tweets)
+        print(pairwise_distances(Xval, y=tfidf, metric='cosine').min(axis=1).mean())
