@@ -22,6 +22,7 @@ class Trumpeter(filepath):
     """
 
     def __init__:
+        self.seed = np.random.seed(42) 
         self.tweets = []
         self.filepath = filepath
         self.last_tweet = None
@@ -36,6 +37,7 @@ class Trumpeter(filepath):
         self.next_chars = []
         self.X = None
         self.y = None
+        self.model = None
 
 
     def trump_loader(self):
@@ -116,4 +118,32 @@ class Trumpeter(filepath):
         for i, sequence in enumerate(self.sequences):
             for t, char in enumerate(sequence):
                 self.X[i, t, self.char_to_idx[char]] = 1
-        self.y[i, self.char_to_idx[self.next_chars[i]]] = 1
+            self.y[i, self.char_to_idx[self.next_chars[i]]] = 1
+
+
+    def model_creation(self, hidden_layer_size = 128, dropout = 0.2, lr = 0.01):
+        """
+        placeholder
+        """
+        self.model = Sequential()
+        self.model.add(LSTM(hidden_layer_size, return_sequences=True, 
+        self.    input_shape=self.max_seq, self.n_chars))
+        self.model.add(Dropout(dropout))
+        self.model.add(LSTM(hidden_layer_size, return_sequences=False))
+        self.model.add(Dropout(dropout))
+        self.model.add(Dense(self.n_chars, activation='softmax'))
+        self.model.compile(loss='categorical_crossentropy', optimizer=RMSprop(lr=lr))
+       
+
+    def train_model(self, batch_size = 128, nb_epoch=60):
+        """
+        Train the model, obviously
+        """
+        checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
+                monitor='loss', save_best_only=True, mode='min')
+        self.model.fit(self.X, self.y,batch_size=batch_size, 
+                nb_epoch=nb_epoch, callbacks=[checkpoint])
+
+
+    def sample(self, preds):
+        
