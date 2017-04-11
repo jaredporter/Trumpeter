@@ -161,7 +161,7 @@ class Trumpeter(filepath):
         return np.argmax(probas)
 
 
-    def generate_tweets(self, n_tweets=10):
+    def generate_tweets(self, text_len):
         """
         This is where the magic happens. Generate tweets based on the
         sequences from the corpus. Eventually this will be able to take
@@ -173,25 +173,23 @@ class Trumpeter(filepath):
         # This finds a space in the corpus and then makes the seed from there
         spaces_in_corpus = np.array([idx for idx in range(self.corp_len) 
             if self.corpus[idx] == ' '])
-        # Loop through and make the tweets, on e letter at a time
-        for i in range(1, n_tweets + 1):
-            begin = np.random.choice(spaces_in_corpus)
-            tweet = u''
-            sequence = self.corpus[begin:begin + self.max_seq]
-            tweet += sequence
-            for _ in range(100):
-                x = np.zeros((1, self.max_seq, self.n_chars))
-                for t, char in enumerate(sequence):
-                    x[0, t, self.char_to_idx[char]] = 1.0
+        # Make the tweet, one letter at a time
+        begin = np.random.choice(spaces_in_corpus)
+        tweet = u''
+        sequence = self.corpus[begin:begin + self.max_seq]
+        tweet += sequence
+        for _ in range(text_len):
+            x = np.zeros((1, self.max_seq, self.n_chars))
+            for t, char in enumerate(sequence):
+                x[0, t, self.char_to_idx[char]] = 1.0
 
-                preds = self.model.predict(x, verbose = 0)[0]
-                next_idx = self.sample(preds)
-                next_char = self.idx_to_char[next_idx]
+            preds = self.model.predict(x, verbose = 0)[0]
+            next_idx = self.sample(preds)
+            next_char = self.idx_to_char[next_idx]
 
-                tweet += next_char
-                sequence = sequence[1:] + next_char
-            # Append each tweet to our list of generated tweets
-            self.generated_tweets.append(tweet)
+            tweet += next_char
+            sequence = sequence[1:] + next_char
+            return tweet
 
 
     def evaluation(self):
