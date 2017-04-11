@@ -1,0 +1,29 @@
+[settings]
+search_query:#donaldtrump
+# Leave empty for all languages
+tweet_language:
+
+[twitter]
+consumer_key:
+consumer_secret:
+access_token:
+access_token_secret:
+
+[track]
+words = [
+    "#maga","#donaldtrump",
+    "#trump","#potus",
+    "#syria"
+    ]
+
+[banned]
+accounts = []
+
+words = []
+
+[follow]
+accounts = []
+
+[whitelist]
+accounts = []
+words = []
