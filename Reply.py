@@ -23,4 +23,25 @@ def create_seed(initial_tweet):
             tagged.append(s_tag)
     # Randomly pick a noun to start our reply
     seed = random.choice(tagged)
-    return seed
+    return seed, replying_to
+
+
+def tweet_generation(seed, handles, LSTM):
+    # TODO: Make sure the tweets end with a complete word/punctuation
+    # Set the character limit
+    remaining = 137
+    # Create the . plus handles we're responding to text
+    if type(handles) == list:
+        first_bit = '.' + ' '.join(handles)
+    else:
+        first_bit = '.' + handles
+    # Add the seed text to that
+    first_bit += " "
+    # Take that charcter count off of the limit
+    remaining -= len(first_bit)
+    remaining -= len(seed)
+    # Create the tweet
+    tweet = LSTM.generate_tweets(seed, remaining)
+    # Put it all together
+    tweet = first_bit + tweet
+    return tweet
