@@ -28,16 +28,21 @@ class Trumpeter(StreamListener):
     def on_data(self, raw_data):
         try:
             cleaned_data = json.loads(raw_data)
-            screen_name = cleaned_data['screen_name'].lower()
+            screen_name = cleaned_data['screen_name']
             tweet_id = cleaned_data['id']
-            retweeted = cleaned_data['retweeted']
+            # retweeted = cleaned_data['retweeted']
             text = cleaned_data['text']
 
             if screen_name.lower() == self.api.me().screen_name.lower():
                 return
 
             if not any(word.lower() in text.lower() for word in self.cfg.banned_words):
+                tweet = {}
+                tweet['text'] = text
+                tweet['id'] = tweet_id
+                tweet['screen_name'] =  screen_name
                 # TODO: repsonse action
+                return tweet
             else:
                 pass
             return True

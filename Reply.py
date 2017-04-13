@@ -16,6 +16,7 @@ class create_reply(object):
         self.tweet = None
 
     def create_seed(self):
+        # TODO: pull handles from text as well
         # Save the handle we're replying to
         self.replying_to = self.initial_tweet['user']['screen_name']
         self.replying_to = "@" + self.replying_to
