@@ -11,6 +11,7 @@ class create_reply(object):
 
     def __ini__(self):
         self.initial_tweet = initial_tweet
+        self.vocab = vocab
         self.replying_to = None
         self.seed = None
         self.tweet = None
@@ -33,10 +34,15 @@ class create_reply(object):
         for s in text:
             s_tag = pos_tag([s])[0]
             s_lower_tag = pos_tag([s.lower()])[0]
-            if s_tag in parts and s_lower_tag in parts:
+            if ( s_tag in parts 
+                    and s_lower_tag in parts 
+                    and (s_tag in vocab 
+                         or s_lower_tag in vocab)
+                ):
                 tagged.append(s_tag)
         # Randomly pick a noun to start our reply
-        self.seed = random.choice(tagged)
+        if len(tagged) > 0:
+            self.seed = random.choice(tagged)
     
     
     def tweet_generation(self, LSTM):

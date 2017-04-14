@@ -1,7 +1,9 @@
 [settings]
 search_query:#donaldtrump
+search_user:sensanders
+# senwarren, corybooker
 # Leave empty for all languages
-tweet_language:
+tweet_language:en
 
 [twitter]
 consumer_key:
