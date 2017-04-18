@@ -1,6 +1,7 @@
 from lstm_tweet_generator import Trumpeter
 from nltk import pos_tag
 from string import punctuation
+import re
 
 class create_reply(object):
     """
@@ -12,17 +13,20 @@ class create_reply(object):
     def __ini__(self):
         self.initial_tweet = initial_tweet
         self.vocab = vocab
-        self.replying_to = None
+        self.replying_to = []
         self.seed = None
         self.tweet = None
 
     def create_seed(self):
-        # TODO: pull handles from text as well
         # Save the handle we're replying to
-        self.replying_to = self.initial_tweet['user']['screen_name']
-        self.replying_to = "@" + self.replying_to
+        author = self.initial_tweet['user']['screen_name']
+        author = "@" + author 
+        self.replying_to.append(author)
         # Get the text of the tweet we're replying to
         text = self.initial_tweet['text']
+        handles_regex = re.compile(r"(?<=^|(?<=[^a-zA-Z0-9-_\.]))(@[A-Za-z]+[A-Za-z0-9]+)")
+        for h in handles_regex.findall(text):
+            self.replying_to.append(h)
         # Tokenise the text and remove handles, hashtags, and urls
         text = [s.translate(str.maketrans('','',punctuation)) for s in 
                 text.split() if not s.startswith(('#','@','http'))]
