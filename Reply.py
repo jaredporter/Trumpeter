@@ -65,9 +65,13 @@ class create_reply(object):
             first_bit = '.' + self.replying_to
         # Add the seed text to that
         first_bit += " "
+        # Pick a hashtag to use from those in original tweet
+        hashtag = random.choice(self.hashtags)
+        hashtag = "#" + hashtag['text']
         # Take that charcter count off of the limit
         remaining -= len(first_bit)
         remaining -= len(self.seed)
+        remaining -= len(hashtag)
         # Create the tweet
         self.tweet = LSTM.generate_tweets(self.seed, remaining)
         # Put it all together
@@ -75,5 +79,6 @@ class create_reply(object):
         spell_check = enchant.Dict("en_us")
         last_word = self.tweet.split()[-1]) 
         # if spell_check.check(last_word) and 
-        #     pass
+        #     self.tweet += hashtag
         # else:
+        #     self.tweet = ' '.join(self.tweet.split()[:-1])
