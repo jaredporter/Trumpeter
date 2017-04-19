@@ -17,14 +17,14 @@ words = [
     "#trump","#potus",
     "#syria"
     ]
+account = @realdonaldtrump
 
 [banned]
 accounts = []
-
 words = []
 
 [follow]
-accounts = []
+accounts = ["@realdonaldtrump"]
 
 [whitelist]
 accounts = []
