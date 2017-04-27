@@ -13,6 +13,7 @@ import string
 from itertools import chain
 from six.moves import reduce
 from sklearn import TfidfVectorizer()
+import os
 
 
 class Trumpeter(filepath):
@@ -50,15 +51,20 @@ class Trumpeter(filepath):
         left off
         """
         # Read in tweets
-        with open(self.filepath) as f:
-            twts = json.load(f)
+        for file in os.listdir(self.filepath):
+            if file.endswith(".txt"):
+                with open(os.path.join(self.filepath, file)) as f:
+                    self.corpus.append(f.read())
+            elif file.endswith(".json"):
+                with open(self.filepath) as f:
+                    twts = json.load(f)
         
-        # Remove all handles and urls and add it to the list of clean tweets
-        for text, entities in ((fix_text(t['text']), t['entities']) for t in twts):
-            urls = (e['url'] for e in entities['urls'])
-            users = ("@"+e['screen_name'] for e in entities['user_mentions'])
-            text = reduce(lambda t,s: t.replace(s, ''), chain(urls, users), text)
-            self.corpus.append(text)
+                    # Remove all handles and urls and add it to the list of clean tweets
+                    for text, entities in ((fix_text(t['text']), t['entities']) for t in twts):
+                        urls = (e['url'] for e in entities['urls'])
+                        users = ("@"+e['screen_name'] for e in entities['user_mentions'])
+                        text = reduce(lambda t,s: t.replace(s, ''), chain(urls, users), text)
+                        self.corpus.append(text)
 
         # # Remove tweets with sebsites in them. Use if above doesn't work
         # self.corpus = [t for t in self.corpus if 'http' not in t]
