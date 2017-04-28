@@ -152,15 +152,20 @@ class Trumpeter(object):
         """
         Train the model, obviously
         """
-        self.trump_loader()
-        self.create_mappings()
-        self.sentence_creation()
-        self.one_hot_encode()
-        self.model_creation()
+        if not self.last_tweet:
+            self.trump_loader()
+        if not self.char_to_idx:
+            self.create_mappings()
+        if not self.sequences
+            self.sentence_creation()
+        if not self.y:
+            self.one_hot_encode()
+        if not self.model:
+            self.model_creation()
         checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
                 monitor='loss', save_best_only=True, mode='min')
         self.model.fit(self.X, self.y,batch_size=batch_size, 
-                nb_epoch=nb_epoch, callbacks=[checkpoint])
+                epochs=nb_epoch, callbacks=[checkpoint])
 
 
     def sample(self, preds):
