@@ -12,18 +12,18 @@ from ftfy import fix_text
 import string
 from itertools import chain
 from six.moves import reduce
-from sklearn import TfidfVectorizer()
+from sklearn.feature_extraction.text import TfidfVectorizer
 import os
 
 
-class Trumpeter(filepath):
+class Trumpeter(object):
     """
     Simple LSTM to generate tweets, character by character based on the
     ramblings of Prez Trump. Trump tweets were collected from the
     the Trump Twitter Archive: http://www.trumptwitterarchive.com
     """
 
-    def __init__:
+    def __init__(self, filepath):
         self.seed = np.random.seed(42) 
         self.corpus = []
         self.generated_tweets = []
@@ -135,7 +135,7 @@ class Trumpeter(filepath):
         """
         self.model = Sequential()
         self.model.add(LSTM(hidden_layer_size, return_sequences=True, 
-        self.    input_shape=self.max_seq, self.n_chars))
+            input_shape = (self.max_seq, self.n_chars)))
         self.model.add(Dropout(dropout))
         self.model.add(LSTM(hidden_layer_size, return_sequences=False))
         self.model.add(Dropout(dropout))
