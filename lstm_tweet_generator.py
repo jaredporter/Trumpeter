@@ -14,6 +14,7 @@ from itertools import chain
 from six.moves import reduce
 from sklearn.feature_extraction.text import TfidfVectorizer
 import os
+from collections import Counter
 
 
 class Trumpeter(object):
@@ -33,9 +34,9 @@ class Trumpeter(object):
         self.char_to_idx = None
         self.idx_to_char = None
         self.n_chars = None
-        self.corp_len
-        self.seq_step
-        self.max_seq
+        self.corp_len = None
+        self.seq_step = 3
+        self.max_seq = 40
         self.sequences = []
         self.next_chars = []
         self.X = None
@@ -56,7 +57,7 @@ class Trumpeter(object):
                 with open(os.path.join(self.filepath, file)) as f:
                     self.corpus.append(f.read())
             elif file.endswith(".json"):
-                with open(self.filepath) as f:
+                with open(os.path.join(self.filepath, file)) as f:
                     twts = json.load(f)
         
                     # Remove all handles and urls and add it to the list of clean tweets
@@ -80,25 +81,25 @@ class Trumpeter(object):
         """
         Create the character maps
         """
-        # Count frequency of characters
-        counter = Counter(" ".join(self.corpus))
-        # Remove infrequent characters.
-        self.chars = [k for k, v in counter.items() if v > 9]
+        # # Count frequency of characters
+        # counter = Counter(" ".join(self.corpus))
+        # # Remove infrequent characters.
+        # self.chars = [k for k, v in counter.items() if v > 9]
 
-        # Make sure that didn't remove standard characters
-        for i in string.ascii_letters:
-            if i not in self.chars:
-                self.chars.append(i)
+        # # Make sure that didn't remove standard characters
+        # for i in string.ascii_letters:
+        #     if i not in self.chars:
+        #         self.chars.append(i)
         
-        self.chars = sorted(self.chars)
+        self.chars = sorted(list(set(" ".join(self.corpus))))
         # Number of unique characters
-        self.N_CHARS = len(self.chars)
+        self.n_chars = len(self.chars)
         self.char_to_idx = {c: i for i, c in enumerate(self.chars)}
         # Create the actual mappings
         self.idx_to_char = {i: c for i, c in enumerate(self.chars)}
 
 
-    def sentence_creation(self):
+    def sentence_creation(self, max_seq = 40, seq_step = 3):
         """
         Create the sentences for training. Keras docs use these params:
             max_seq = 40
@@ -106,6 +107,10 @@ class Trumpeter(object):
         Making steps or lengths shorter will result in longer training
         time, but on a GPU it shouldn't be prohibitively expensive.
         """
+        if max_seq != self.max_seq:
+            self.max_seq = max_seq
+        if seq_step != self.seq_step:
+            self.seq_step = seq_step
 
         for i in range(0, (self.corp_len - self.max_seq), self.seq_step):
             self.sequences.append(self.corpus[i:i + self.max_seq])
@@ -147,6 +152,11 @@ class Trumpeter(object):
         """
         Train the model, obviously
         """
+        self.trump_loader()
+        self.create_mappings()
+        self.sentence_creation()
+        self.one_hot_encode()
+        self.model_creation()
         checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
                 monitor='loss', save_best_only=True, mode='min')
         self.model.fit(self.X, self.y,batch_size=batch_size, 
