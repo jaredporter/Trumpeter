@@ -13,6 +13,7 @@ import string
 from itertools import chain
 from six.moves import reduce
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import pairwise_distances
 import os
 from collections import Counter
 
@@ -148,32 +149,39 @@ class Trumpeter(object):
         self.model.compile(loss='categorical_crossentropy', optimizer=RMSprop(lr=lr))
        
 
-    def train_model(self, batch_size = 128, nb_epoch=60):
+    def train_model(self, batch_size = 128, nb_epoch=7):
         """
         Train the model, obviously
         """
-        if not self.last_tweet:
-            self.trump_loader()
-        if not self.char_to_idx:
-            self.create_mappings()
-        if not self.sequences
-            self.sentence_creation()
-        if not self.y:
-            self.one_hot_encode()
-        if not self.model:
-            self.model_creation()
-        checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
-                monitor='loss', save_best_only=True, mode='min')
-        self.model.fit(self.X, self.y,batch_size=batch_size, 
-                epochs=nb_epoch, callbacks=[checkpoint])
+        try:
+            checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
+                    monitor='loss', save_best_only=True, mode='min')
+            self.model.fit(self.X, self.y,batch_size=batch_size, 
+                    epochs=nb_epoch, callbacks=[checkpoint])
+
+        except AttributeError:
+            if not self.last_tweet:
+                self.trump_loader()
+            if not self.char_to_idx:
+                self.create_mappings()
+            if not self.sequences:
+                self.sentence_creation()
+            if not self.y:
+                self.one_hot_encode()
+            if not self.model:
+                self.model_creation()
+
+            checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
+                    monitor='loss', save_best_only=True, mode='min')
+            self.model.fit(self.X, self.y,batch_size=batch_size, 
+                    epochs=nb_epoch, callbacks=[checkpoint])
+            
 
 
     def sample(self, preds):
         """
-        Not sure where preds comes from. Need to figure it out. 
-        But this will give me the most likely character to occur next.
+        This will give me the most likely character to occur next.
         """
-        # TODO: fix this whole damn function
         preds = np.asanyarray(preds).astype('float64') 
         preds = np.log(preds) / 0.2
         exp_preds = np.exp(preds)
@@ -189,27 +197,62 @@ class Trumpeter(object):
         inputs from new tweets and generate things, but one thing at a
         time
         """
-        # Load in our model's weights
-        self.model.load_weights('weights.hdf5')
-        # This finds a space in the corpus and then makes the seed from there
-        spaces_in_corpus = np.array([idx for idx in range(self.corp_len) 
-            if self.corpus[idx] == ' '])
-        # Make the tweet, one letter at a time
-        begin = np.random.choice(spaces_in_corpus)
-        tweet = u''
-        sequence = self.corpus[begin:begin + self.max_seq]
-        tweet += sequence
-        for _ in range(text_len):
-            x = np.zeros((1, self.max_seq, self.n_chars))
-            for t, char in enumerate(sequence):
-                x[0, t, self.char_to_idx[char]] = 1.0
+        try:
+            # Load in our model's weights
+            self.model.load_weights('weights.hdf5')
+            # This finds a space in the corpus and then makes the seed from there
+            spaces_in_corpus = np.array([idx for idx in range(self.corp_len) 
+                if self.corpus[idx] == ' '])
+            # Make the tweet, one letter at a time
+            begin = np.random.choice(spaces_in_corpus)
+            tweet = u''
+            sequence = self.corpus[begin:begin + self.max_seq]
+            tweet += sequence
+            for _ in range(text_len):
+                x = np.zeros((1, self.max_seq, self.n_chars))
+                for t, char in enumerate(sequence):
+                    x[0, t, self.char_to_idx[char]] = 1.0
 
-            preds = self.model.predict(x, verbose = 0)[0]
-            next_idx = self.sample(preds)
-            next_char = self.idx_to_char[next_idx]
+                preds = self.model.predict(x, verbose = 0)[0]
+                next_idx = self.sample(preds)
+                next_char = self.idx_to_char[next_idx]
 
-            tweet += next_char
-            sequence = sequence[1:] + next_char
+                tweet += next_char
+                sequence = sequence[1:] + next_char
+            return tweet
+
+        except AttributeError:
+            if not self.last_tweet:
+                self.trump_loader()
+            if not self.char_to_idx:
+                self.create_mappings()
+            if not self.sequences:
+                self.sentence_creation()
+            if not self.y:
+                self.one_hot_encode()
+            if not self.model:
+                self.model_creation()
+            # Load in our model's weights
+            self.model.load_weights('weights.hdf5')
+            # This finds a space in the corpus and then makes the seed from there
+            spaces_in_corpus = np.array([idx for idx in range(self.corp_len) 
+                if self.corpus[idx] == ' '])
+            # Make the tweet, one letter at a time
+            begin = np.random.choice(spaces_in_corpus)
+            tweet = u''
+            sequence = self.corpus[begin:begin + self.max_seq]
+            tweet += sequence
+            for _ in range(text_len):
+                x = np.zeros((1, self.max_seq, self.n_chars))
+                for t, char in enumerate(sequence):
+                    x[0, t, self.char_to_idx[char]] = 1.0
+
+                preds = self.model.predict(x, verbose = 0)[0]
+                next_idx = self.sample(preds)
+                next_char = self.idx_to_char[next_idx]
+
+                tweet += next_char
+                sequence = sequence[1:] + next_char
             return tweet
 
 
@@ -221,4 +264,4 @@ class Trumpeter(object):
         vectoriser = TfidfVectorizer()
         tfidf = vectoriser.fit_transform(self.sequences)
         Xval = vectorizer.transform(self.generated_tweets)
-        print(pairwise_distances(Xval, y=tfidf, metric='cosine').min(axis=1).mean())
+        print(pairwise_distances(Xval, Y=tfidf, metric='cosine').min(axis=1).mean())
