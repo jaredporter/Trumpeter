@@ -1,4 +1,7 @@
+#!/usr/bin/python
+
 import argparse
+import re
 
 
 def cleaner(filename,target,opponent,moderator):
@@ -17,21 +20,21 @@ def cleaner(filename,target,opponent,moderator):
     # Split into paragraphs
     nl_split = [x for x in text.split('\n') if x]
     # Empty list for target's speaking
-    target_trans = []
+    target_trans = ''
     # Check who is speaking and if target, add it to the list
     for paragraph in nl_split:
         if paragraph.startswith(opponent):
             TARGET = False
         elif paragraph.startswith(moderator):
-            TARGET = FALSE
+            TARGET = False
         elif paragraph.startswith(target):
             TARGET = True
 
         if TARGET == True:
-            target_trans.append(paragraph)
+            target_trans += paragraph
 
         # Join it into a single string
-        target_trans = ' '.join(target_trans)
+        # target_trans = ' '.join(target_trans)
 
     applause = '(\(Applause\)|\(APPLAUSE\)|\(applause\)|\[Applause\]|\[APPLAUSE\]|\[applause\])'
     target_speaker = target.upper() + ': '
