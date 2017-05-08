@@ -33,6 +33,11 @@ def cleaner(filename,target,opponent,moderator):
         # Join it into a single string
         target_trans = ' '.join(target_trans)
 
+    applause = '(\(Applause\)|\(APPLAUSE\)|\(applause\)|\[Applause\]|\[APPLAUSE\]|\[applause\])'
+    target_speaker = target.upper() + ': '
+    target_trans = re.sub(applause, '', target_trans)
+    target_trans = re.sub(target_speaker, '', target_trans)
+
     # Write it back to the file
     with open(filename, 'w') as f:
         f.write(target_trans)
