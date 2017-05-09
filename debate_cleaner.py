@@ -18,7 +18,10 @@ def cleaner(filename,target,opponent,moderator,secondary_moderator=None):
     with open(filename) as f:
         text = f.read()
     # Split into paragraphs
-    nl_split = [x for x in text.split('\n') if x and not x.startswith('QUESTION')]
+    if secondary_moderator != 'QUESTION':
+        nl_split = [x for x in text.split('\n') if x and not x.startswith('QUESTION')]
+    else:
+        nl_split = [x for x in text.split('\n') if x]
     # Empty list for target's speaking
     target_trans = ''
     # Check who is speaking and if target, add it to the list
@@ -52,6 +55,9 @@ def cleaner(filename,target,opponent,moderator,secondary_moderator=None):
     target_speaker = target.upper() + ': '
     target_trans = re.sub(applause, '', target_trans)
     target_trans = re.sub(target_speaker, '', target_trans)
+    target_trans = re.sub(target_speaker, '', target_trans)
+    target_trans = re.sub(target_speaker.lower(), '', target_trans)
+
 
     # Write it back to the file
     with open(filename, 'w') as f:
@@ -65,7 +71,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', action='store', dest='target')
     parser.add_argument('-o', action='store', dest='opponent')
     parser.add_argument('-m', action='store', dest='moderator')
-    parser.add_argument('-s', action='store', dest='secondary_moderator')
+    parser.add_argument('-s', nargs= '?', action='store', dest='secondary_moderator')
     args = parser.parse_args()
 
 
