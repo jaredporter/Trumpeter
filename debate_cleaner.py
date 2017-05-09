@@ -4,7 +4,7 @@ import argparse
 import re
 
 
-def cleaner(filename,target,opponent,moderator):
+def cleaner(filename,target,opponent,moderator,secondary_moderator=None):
     """
     Take a transcript of a debate and clean it up so that you only get
     the text from the person you want to use in your training data.
@@ -18,24 +18,36 @@ def cleaner(filename,target,opponent,moderator):
     with open(filename) as f:
         text = f.read()
     # Split into paragraphs
-    nl_split = [x for x in text.split('\n') if x]
+    nl_split = [x for x in text.split('\n') if x and not x.startswith('QUESTION')]
     # Empty list for target's speaking
     target_trans = ''
     # Check who is speaking and if target, add it to the list
-    for paragraph in nl_split:
-        if paragraph.startswith(opponent):
-            TARGET = False
-        elif paragraph.startswith(moderator):
-            TARGET = False
-        elif paragraph.startswith(target):
-            TARGET = True
+    if secondary_moderator is not None:
+        for paragraph in nl_split:
+            if paragraph.startswith(opponent):
+                TARGET = False
+            elif paragraph.startswith(moderator):
+                TARGET = False
+            elif paragraph.startswith(secondary_moderator):
+                TARGET = False
+            elif paragraph.startswith(target):
+                TARGET = True
+    
+            if TARGET == True:
+                target_trans += paragraph
 
-        if TARGET == True:
-            target_trans += paragraph
-
-        # Join it into a single string
-        # target_trans = ' '.join(target_trans)
-
+    elif secondary_moderator is None:
+        for paragraph in nl_split:
+            if paragraph.startswith(opponent):
+                TARGET = False
+            elif paragraph.startswith(moderator):
+                TARGET = False
+            elif paragraph.startswith(target):
+                TARGET = True
+    
+            if TARGET == True:
+                target_trans += paragraph
+                
     applause = '(\(Applause\)|\(APPLAUSE\)|\(applause\)|\[Applause\]|\[APPLAUSE\]|\[applause\])'
     target_speaker = target.upper() + ': '
     target_trans = re.sub(applause, '', target_trans)
@@ -53,7 +65,10 @@ if __name__ == '__main__':
     parser.add_argument('-t', action='store', dest='target')
     parser.add_argument('-o', action='store', dest='opponent')
     parser.add_argument('-m', action='store', dest='moderator')
+    parser.add_argument('-s', action='store', dest='secondary_moderator')
     args = parser.parse_args()
 
+
     # Run the cleaner on the arguments from the parser
-    cleaner(args.filename, args.target, args.opponent ,args.moderator)
+    cleaner(args.filename, args.target, args.opponent ,args.moderator,
+            args.secondary_moderator)
