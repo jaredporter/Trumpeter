@@ -19,7 +19,8 @@ def cleaner(filename,target,opponent,moderator,secondary_moderator=None):
         text = f.read()
     # Split into paragraphs
     if secondary_moderator != 'QUESTION':
-        nl_split = [x for x in text.split('\n') if x and not x.startswith('QUESTION')]
+        nl_split = [x for x in text.split('\n') if x and not x.startswith('QUESTION')
+                and not x.startswith('Q ')]
     else:
         nl_split = [x for x in text.split('\n') if x]
     # Empty list for target's speaking
@@ -54,7 +55,6 @@ def cleaner(filename,target,opponent,moderator,secondary_moderator=None):
     applause = '(\(Applause\)|\(APPLAUSE\)|\(applause\)|\[Applause\]|\[APPLAUSE\]|\[applause\])'
     target_speaker = target.upper() + ': '
     target_trans = re.sub(applause, '', target_trans)
-    target_trans = re.sub(target_speaker, '', target_trans)
     target_trans = re.sub(target_speaker, '', target_trans)
     target_trans = re.sub(target_speaker.lower(), '', target_trans)
 
