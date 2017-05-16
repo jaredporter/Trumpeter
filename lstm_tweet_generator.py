@@ -36,8 +36,8 @@ class Trumpeter(object):
         self.idx_to_char = None
         self.n_chars = None
         self.corp_len = None
-        self.seq_step = 3
-        self.max_seq = 40
+        self.seq_step = None
+        self.max_seq = None
         self.sequences = []
         self.next_chars = []
         self.X = None
@@ -108,10 +108,8 @@ class Trumpeter(object):
         Making steps or lengths shorter will result in longer training
         time, but on a GPU it shouldn't be prohibitively expensive.
         """
-        if max_seq != self.max_seq:
-            self.max_seq = max_seq
-        if seq_step != self.seq_step:
-            self.seq_step = seq_step
+        self.max_seq = max_seq
+        self.seq_step = seq_step
 
         for i in range(0, (self.corp_len - self.max_seq), self.seq_step):
             self.sequences.append(self.corpus[i:i + self.max_seq])
@@ -139,6 +137,9 @@ class Trumpeter(object):
         """
         placeholder
         """
+        self.hidden_layer_size = hidden_layer_size
+        self.dropout = dropout
+        self.lr = lr
         self.model = Sequential()
         self.model.add(LSTM(hidden_layer_size, return_sequences=True, 
             input_shape = (self.max_seq, self.n_chars)))
@@ -149,7 +150,8 @@ class Trumpeter(object):
         self.model.compile(loss='categorical_crossentropy', optimizer=RMSprop(lr=lr))
        
 
-    def train_model(self, batch_size = 128, nb_epoch=7):
+    def train_model(self, batch_size = 256, nb_epoch=7,
+            hidden_layer_size = 128, dropout = 0.1, lr = 0.005):
         """
         Train the model, obviously
         """
@@ -169,7 +171,8 @@ class Trumpeter(object):
             if not self.y:
                 self.one_hot_encode()
             if not self.model:
-                self.model_creation()
+                self.model_creation(hidden_layer_size = hidden_layer_size,
+                        dropout = dropout, lr = lr)
 
             checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
                     monitor='loss', save_best_only=True, mode='min')
