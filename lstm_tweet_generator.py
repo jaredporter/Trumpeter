@@ -150,7 +150,7 @@ class Trumpeter(object):
         self.model.compile(loss='categorical_crossentropy', optimizer=RMSprop(lr=lr))
        
 
-    def train_model(self, batch_size = 256, nb_epoch=7,
+    def train_model(self, batch_size = 1028, nb_epoch=7,
             hidden_layer_size = 128, dropout = 0.1, lr = 0.005):
         """
         Train the model, obviously
@@ -193,7 +193,7 @@ class Trumpeter(object):
         return np.argmax(probas)
 
 
-    def generate_tweets(self, text_len):
+    def generate_tweets(self, seed, text_len):
         """
         This is where the magic happens. Generate tweets based on the
         sequences from the corpus. Eventually this will be able to take
@@ -203,13 +203,14 @@ class Trumpeter(object):
         try:
             # Load in our model's weights
             self.model.load_weights('weights.hdf5')
-            # This finds a space in the corpus and then makes the seed from there
-            spaces_in_corpus = np.array([idx for idx in range(self.corp_len) 
-                if self.corpus[idx] == ' '])
-            # Make the tweet, one letter at a time
-            begin = np.random.choice(spaces_in_corpus)
+            # # This finds a space in the corpus and then makes the seed from there
+            # spaces_in_corpus = np.array([idx for idx in range(self.corp_len) 
+            #     if self.corpus[idx] == ' '])
+            # # Make the tweet, one letter at a time
+            # begin = np.random.choice(spaces_in_corpus)
             tweet = u''
-            sequence = self.corpus[begin:begin + self.max_seq]
+            # sequence = self.corpus[begin:begin + self.max_seq]
+            sequence = seed
             tweet += sequence
             for _ in range(text_len):
                 x = np.zeros((1, self.max_seq, self.n_chars))
@@ -241,9 +242,10 @@ class Trumpeter(object):
             spaces_in_corpus = np.array([idx for idx in range(self.corp_len) 
                 if self.corpus[idx] == ' '])
             # Make the tweet, one letter at a time
-            begin = np.random.choice(spaces_in_corpus)
+            # begin = np.random.choice(spaces_in_corpus)
             tweet = u''
-            sequence = self.corpus[begin:begin + self.max_seq]
+            # sequence = self.corpus[begin:begin + self.max_seq]
+            sequence = seed
             tweet += sequence
             for _ in range(text_len):
                 x = np.zeros((1, self.max_seq, self.n_chars))

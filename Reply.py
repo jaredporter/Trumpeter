@@ -11,13 +11,14 @@ class create_reply(object):
     the tweet.
     """
 
-    def __ini__(self):
+    def __ini__(self, Trumpeter):
         self.initial_tweet = initial_tweet
         self.vocab = vocab
         self.replying_to = []
         self.hashtags = None
         self.seed = None
         self.tweet = None
+        self.trumpeter = Trumpeter
 
 
     def create_seed(self):
@@ -48,14 +49,15 @@ class create_reply(object):
                          or s_lower_tag in vocab)
                 ):
                 tagged.append(s_tag)
-        # Randomly pick a noun to start our reply
+        # Randomly pick a noun and the following word to start our reply
         if len(tagged) > 0:
             self.seed = random.choice(tagged)
+            self.seed += ' ' + self.initial_tweet['text'].partition(
+                    self.seed).split()[0]
     
     
-    def tweet_generation(self, LSTM):
+    def tweet_generation(self):
         # TODO: Make sure the tweets end with a complete word/punctuation
-        # TODO: Add one of the hashtags back to the end of the tweet
         # Set the character limit
         remaining = 137
         # Create the . plus handles we're responding to text
@@ -66,10 +68,10 @@ class create_reply(object):
         # Add the seed text to that
         first_bit += " "
         # Pick a hashtag to use from those in original tweet
-        hashtag = random.choice(self.hashtags)
-        if len(hashtaga) > 0:
+        try:
+            hashtag = random.choice(self.hashtags)
             hashtag = "#" + hashtag['text']
-        else:
+        except IndexError:
             hashtag = ''
         # Take that charcter count off of the limit
         remaining -= len(first_bit)
@@ -77,8 +79,8 @@ class create_reply(object):
         remaining -= len(hashtag)
         # Create the tweet 
         # TODO: check to make sure seed is long enough to generate 
-        # tweet that makes sense
-        self.tweet = LSTM.generate_tweets(self.seed, remaining)
+        # a tweet that makes sense
+        self.tweet = self.trumpeter.generate_tweets(self.seed, remaining)
         # Put it all together
         self.tweet = first_bit + self.tweet
         spell_check = enchant.Dict("en_us")
@@ -88,7 +90,7 @@ class create_reply(object):
         else:
             corrected = spell_check.suggest(last_word)[0]
             temp_tweet = ' '.join(self.tweet.split()[:-1] + list(corrected))
-            if len(temp_tweet + ' ' + hashtag):
-                self.tweet = temp_tweet
+            if len(temp_tweet + ' ' + hashtag) < 141:
+                self.tweet = temp_tweet + ' ' + hashtag
             else:
                 self.tweet = ' '.join(self.tweet.split()[:-1] + ' '+ hashtag)
