@@ -151,11 +151,14 @@ class Trumpeter(object):
        
 
     def train_model(self, batch_size = 1028, nb_epoch=7,
-            hidden_layer_size = 128, dropout = 0.1, lr = 0.005):
+            hidden_layer_size = 128, dropout = 0.1, lr = 0.005,
+            continuation = False):
         """
         Train the model, obviously
         """
         try:
+            if continuation == True:
+                self.model.load_weights('weights.hdf5')
             checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
                     monitor='loss', save_best_only=True, mode='min')
             self.model.fit(self.X, self.y,batch_size=batch_size, 
@@ -174,6 +177,8 @@ class Trumpeter(object):
                 self.model_creation(hidden_layer_size = hidden_layer_size,
                         dropout = dropout, lr = lr)
 
+            if continuation == True:
+                self.model.load_weights('weights.hdf5')
             checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
                     monitor='loss', save_best_only=True, mode='min')
             self.model.fit(self.X, self.y,batch_size=batch_size, 
