@@ -15,6 +15,7 @@ from six.moves import reduce
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import pairwise_distances
 import os
+import re
 from collections import Counter
 
 
@@ -73,6 +74,7 @@ class Trumpeter(object):
 
         # Convert list into single corpus
         self.corpus = ' '.join(self.corpus)
+        self.corpus = re.replace('http://\S*', '', self.corpus)
         self.corp_len = len(self.corpus)
 
         self.last_tweet = twts[0]['created_at']
