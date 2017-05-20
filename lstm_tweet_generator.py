@@ -135,7 +135,8 @@ class Trumpeter(object):
             self.y[i, self.char_to_idx[self.next_chars[i]]] = 1
 
 
-    def model_creation(self, hidden_layer_size = 128, dropout = 0.2, lr = 0.01):
+    def model_creation(self, hidden_layer_size = 128, dropout = 0.2,
+            lr = 0.01, decay=0.0):
         """
         placeholder
         """
@@ -149,12 +150,13 @@ class Trumpeter(object):
         self.model.add(LSTM(hidden_layer_size, return_sequences=False))
         self.model.add(Dropout(dropout))
         self.model.add(Dense(self.n_chars, activation='softmax'))
-        self.model.compile(loss='categorical_crossentropy', optimizer=RMSprop(lr=lr))
+        self.model.compile(loss='categorical_crossentropy',
+                optimizer=RMSprop(lr=lr, decay=decay))
        
 
     def train_model(self, batch_size = 1028, nb_epoch=7,
             hidden_layer_size = 128, dropout = 0.1, lr = 0.005,
-            continuation = False):
+            decay=0.0, continuation = False):
         """
         Train the model, obviously
         """
@@ -177,7 +179,7 @@ class Trumpeter(object):
                 self.one_hot_encode()
             if not self.model:
                 self.model_creation(hidden_layer_size = hidden_layer_size,
-                        dropout = dropout, lr = lr)
+                        dropout = dropout, lr = lr, decay = decay)
 
             if continuation == True:
                 self.model.load_weights('weights.hdf5')
