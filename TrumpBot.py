@@ -42,7 +42,7 @@ class TrumpBot(StreamListener):
                 self.tweet['text'] = text
                 self.tweet['id'] = tweet_id
                 self.tweet['screen_name'] =  screen_name
-                # TODO: repsonse action
+                # TODO: repsonse action, finish it off
                 reply_generator.create_seed()
                 reply_generator.tweet_generation()
                 self.postTweet(reply_generator.tweet)
