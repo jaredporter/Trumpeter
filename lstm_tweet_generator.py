@@ -72,6 +72,8 @@ class Trumpeter(object):
 
         # # Remove tweets with sebsites in them. Use if above doesn't work
         # self.corpus = [t for t in self.corpus if 'http' not in t]
+        puncs = ['/','(',')',':',';']
+        self.corpus = [t for t in self.corpus if t not in puncs]
 
         # Convert list into single corpus
         self.corpus = ' '.join(self.corpus)

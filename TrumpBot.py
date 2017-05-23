@@ -6,12 +6,13 @@ from TrumpeterConfig import TrumpeterConfig
 import json
 
 
-class Trumpeter(StreamListener):
-    def __init__(self,cfgFile, *args, **kwargs):
+class TrumpBot(StreamListener):
+    def __init__(self, reply_generator, cfgFile, *args, **kwargs):
         StreamListener.__init__(self, *args, **kwargs)
         self.cfg = TrumpeterConfig(cfgFile=kwargs.get('cfgFile', cfgFile))
         self.api = None
         self.auths = None
+        self.tweet = {}
 
 
     def athenticate(self):
@@ -37,12 +38,14 @@ class Trumpeter(StreamListener):
                 return
 
             if not any(word.lower() in text.lower() for word in self.cfg.banned_words):
-                tweet = {}
-                tweet['text'] = text
-                tweet['id'] = tweet_id
-                tweet['screen_name'] =  screen_name
-                # TODO: repsonse action
-                return tweet
+                self.tweet = {}
+                self.tweet['text'] = text
+                self.tweet['id'] = tweet_id
+                self.tweet['screen_name'] =  screen_name
+                # TODO: repsonse action, finish it off
+                reply_generator.create_seed()
+                reply_generator.tweet_generation()
+                self.postTweet(reply_generator.tweet)
             else:
                 pass
             return True
