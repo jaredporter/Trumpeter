@@ -24,6 +24,7 @@ class Trumpeter(object):
     Simple LSTM to generate tweets, character by character based on the
     ramblings of Prez Trump. Trump tweets were collected from the
     the Trump Twitter Archive: http://www.trumptwitterarchive.com
+    Their repo is: https://github.com/bpb27/trump_tweet_data_archive
     """
 
     def __init__(self, filepath):
