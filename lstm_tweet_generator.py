@@ -47,7 +47,7 @@ class Trumpeter(object):
         self.model = None
 
 
-    def trump_loader(self):
+    def trump_loader(self, tweets_only=False):
         """
         Funciton to load in tweets into list. Each element is a tweet
         that's been clenaed and only the text has been pulled out.
@@ -56,7 +56,7 @@ class Trumpeter(object):
         """
         # Read in tweets
         for file in os.listdir(self.filepath):
-            if file.endswith(".txt"):
+            if file.endswith(".txt") and tweets_only == True:
                 with open(os.path.join(self.filepath, file)) as f:
                     self.corpus.append(f.read())
             elif file.endswith(".json"):
@@ -158,7 +158,7 @@ class Trumpeter(object):
        
 
     def train_model(self, batch_size = 1028, nb_epoch=7,
-            hidden_layer_size = 128, dropout = 0.1, lr = 0.005,
+            hidden_layer_size = 128, dropout = 0.2, lr = 0.005,
             decay=0.0, continuation = False):
         """
         Train the model, obviously
