@@ -56,7 +56,7 @@ class Trumpeter(object):
         """
         # Read in tweets
         for file in os.listdir(self.filepath):
-            if file.endswith(".txt") and tweets_only == True:
+            if file.endswith(".txt") and tweets_only == False:
                 with open(os.path.join(self.filepath, file)) as f:
                     self.corpus.append(f.read())
             elif file.endswith(".json"):
@@ -129,7 +129,8 @@ class Trumpeter(object):
         One hot encode the input and output so it's usable in a NN.
         """
         # Create empty matrices for Xs and ys
-        self.X = np.zeros((self.n_seq, self.max_seq, self.n_chars), dtype=np.bool)
+        self.X = np.zeros((self.n_seq, self.max_seq, self.n_chars), 
+                dtype=np.bool)
         self.y = np.zeros((self.n_seq, self.n_chars), dtype=np.bool)
         # Loop through and update indicies of Xs and ys to one
         for i, sequence in enumerate(self.sequences):
@@ -158,8 +159,9 @@ class Trumpeter(object):
        
 
     def train_model(self, batch_size = 1028, nb_epoch=7,
-            hidden_layer_size = 128, dropout = 0.2, lr = 0.005,
-            decay=0.0, continuation = False):
+            hidden_layer_size = 128, dropout = 0.1, lr = 0.005,
+            decay=0.0, continuation = False, max_seq = 40,
+            seq_step = 3):
         """
         Train the model, obviously
         """
@@ -177,7 +179,8 @@ class Trumpeter(object):
             if not self.char_to_idx:
                 self.create_mappings()
             if not self.sequences:
-                self.sentence_creation()
+                self.sentence_creation(max_seq = max_seq,
+                        seq_step = seq_step)
             if not self.y:
                 self.one_hot_encode()
             if not self.model:
@@ -250,9 +253,10 @@ class Trumpeter(object):
                 self.model_creation()
             # Load in our model's weights
             self.model.load_weights('weights.hdf5')
-            # This finds a space in the corpus and then makes the seed from there
-            spaces_in_corpus = np.array([idx for idx in range(self.corp_len) 
-                if self.corpus[idx] == ' '])
+            # This finds a space in the corpus and then makes the seed
+            # from there
+            spaces_in_corpus = np.array([idx for idx in
+                range(self.corp_len) if self.corpus[idx] == ' '])
             # Make the tweet, one letter at a time
             # begin = np.random.choice(spaces_in_corpus)
             tweet = u''
@@ -281,4 +285,5 @@ class Trumpeter(object):
         vectoriser = TfidfVectorizer()
         tfidf = vectoriser.fit_transform(self.sequences)
         Xval = vectorizer.transform(self.generated_tweets)
-        print(pairwise_distances(Xval, Y=tfidf, metric='cosine').min(axis=1).mean())
+        print(pairwise_distances(Xval, Y=tfidf, metric='cosine').min(
+            axis=1).mean())
