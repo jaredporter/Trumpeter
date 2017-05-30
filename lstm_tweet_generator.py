@@ -149,9 +149,13 @@ class Trumpeter(object):
         self.dropout = dropout
         self.lr = lr
         self.model = Sequential()
-        self.model.add(LSTM(hidden_layer_size, return_sequences=True, 
-            input_shape = (self.max_seq, self.n_chars), 
-            stateful = stateful))
+        if stateful == False:
+            self.model.add(LSTM(hidden_layer_size, return_sequences=True, 
+                input_shape = (self.max_seq, self.n_chars)) 
+        else:
+            self.model.add(LSTM(hidden_layer_size, return_sequences=True, 
+                batch_input_shape = (self.max_seq, self.n_chars),
+                stateful = True) 
         self.model.add(Dropout(dropout))
         self.model.add(LSTM(hidden_layer_size, return_sequences=False,
             stateful = stateful))
