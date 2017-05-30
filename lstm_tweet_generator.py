@@ -139,7 +139,7 @@ class Trumpeter(object):
             self.y[i, self.char_to_idx[self.next_chars[i]]] = 1
 
 
-    def model_creation(self, hidden_layer_size = 128, dropout = 0.2,
+    def model_creation(self, hidden_layer_size = 512, dropout = 0.2,
             lr = 0.01, decay=0.0):
         """
         placeholder
@@ -159,7 +159,7 @@ class Trumpeter(object):
        
 
     def train_model(self, batch_size = 1028, nb_epoch=7,
-            hidden_layer_size = 128, dropout = 0.1, lr = 0.005,
+            hidden_layer_size = 512, dropout = 0.1, lr = 0.005,
             decay=0.0, continuation = False, max_seq = 40,
             seq_step = 3):
         """
@@ -208,7 +208,7 @@ class Trumpeter(object):
         return np.argmax(probas)
 
 
-    def generate_tweets(self, seed, text_len):
+    def generate_tweets(self, seed, text_len, weights = 'weights.hdf5'):
         """
         This is where the magic happens. Generate tweets based on the
         sequences from the corpus. Eventually this will be able to take
@@ -217,7 +217,7 @@ class Trumpeter(object):
         """
         try:
             # Load in our model's weights
-            self.model.load_weights('weights.hdf5')
+            self.model.load_weights(weights)
             # # This finds a space in the corpus and then makes the seed from there
             # spaces_in_corpus = np.array([idx for idx in range(self.corp_len) 
             #     if self.corpus[idx] == ' '])
@@ -252,7 +252,7 @@ class Trumpeter(object):
             if not self.model:
                 self.model_creation()
             # Load in our model's weights
-            self.model.load_weights('weights.hdf5')
+            self.model.load_weights(weights)
             # This finds a space in the corpus and then makes the seed
             # from there
             spaces_in_corpus = np.array([idx for idx in
