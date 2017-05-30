@@ -1,3 +1,5 @@
+from keras.callbacks import Callback
+
 class Reset_States_Callback(Callback):
     def __init__(self):
         self.counter = 0
