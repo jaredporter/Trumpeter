@@ -14,6 +14,7 @@ from itertools import chain
 from six.moves import reduce
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import pairwise_distances
+from Reset_States_Callback import *
 import os
 import re
 from collections import Counter
@@ -139,13 +140,8 @@ class Trumpeter(object):
             self.y[i, self.char_to_idx[self.next_chars[i]]] = 1
 
 
-<<<<<<< HEAD
-    def model_creation(self, hidden_layer_size = 512, dropout = 0.2,
-            lr = 0.01, decay=0.0):
-=======
     def model_creation(self, hidden_layer_size = 128, dropout = 0.2,
             lr = 0.01, decay=0.0, stateful = False):
->>>>>>> a7fe04d35a212c0e7c45a46765e63259d6038040
         """
         placeholder
         """
@@ -199,13 +195,14 @@ class Trumpeter(object):
                 self.model.load_weights('weights.hdf5')
             checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
                     monitor='loss', save_best_only=True, mode='min')
+            resets = Reset_States_Callback()
             if stateful == True:
                 self.model.fit(self.X, self.y,batch_size=batch_size, 
-                        epochs=nb_epoch, callbacks=[checkpoint],
+                        epochs=nb_epoch, callbacks=[checkpoint, resets],
                         shuffle = False)
             else:
                 self.model.fit(self.X, self.y,batch_size=batch_size, 
-                        epochs=nb_epoch, callbacks=[checkpoint])
+                        epochs=nb_epoch, callbacks=[checkpoint, resets])
 
             
 
