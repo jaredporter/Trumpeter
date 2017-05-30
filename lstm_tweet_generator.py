@@ -140,7 +140,7 @@ class Trumpeter(object):
             self.y[i, self.char_to_idx[self.next_chars[i]]] = 1
 
 
-    def model_creation(self, hidden_layer_size = 128, dropout = 0.2,
+    def model_creation(self, hidden_layer_size = 512, dropout = 0.2,
             lr = 0.01, decay=0.0, stateful = False):
         """
         placeholder
@@ -189,7 +189,7 @@ class Trumpeter(object):
             if not self.model:
                 self.model_creation(hidden_layer_size = hidden_layer_size,
                         dropout = dropout, lr = lr, decay = decay, 
-                        shuffle = shuffle, stateful = stateful)
+                        stateful = stateful)
 
             if continuation == True:
                 self.model.load_weights('weights.hdf5')
