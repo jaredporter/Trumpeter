@@ -151,11 +151,11 @@ class Trumpeter(object):
         self.model = Sequential()
         if stateful == False:
             self.model.add(LSTM(hidden_layer_size, return_sequences=True, 
-                input_shape = (self.max_seq, self.n_chars)) 
+                input_shape = (self.max_seq, self.n_chars))) 
         else:
             self.model.add(LSTM(hidden_layer_size, return_sequences=True, 
                 batch_input_shape = (self.max_seq, self.n_chars),
-                stateful = True) 
+                stateful = True)) 
         self.model.add(Dropout(dropout))
         self.model.add(LSTM(hidden_layer_size, return_sequences=False,
             stateful = stateful))
