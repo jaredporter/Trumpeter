@@ -140,7 +140,7 @@ class Trumpeter(object):
 
 
     def model_creation(self, hidden_layer_size = 128, dropout = 0.2,
-            lr = 0.01, decay=0.0):
+            lr = 0.01, decay=0.0, stateful = False):
         """
         placeholder
         """
@@ -149,9 +149,11 @@ class Trumpeter(object):
         self.lr = lr
         self.model = Sequential()
         self.model.add(LSTM(hidden_layer_size, return_sequences=True, 
-            input_shape = (self.max_seq, self.n_chars)))
+            input_shape = (self.max_seq, self.n_chars), 
+            stateful = stateful))
         self.model.add(Dropout(dropout))
-        self.model.add(LSTM(hidden_layer_size, return_sequences=False))
+        self.model.add(LSTM(hidden_layer_size, return_sequences=False,
+            stateful = stateful))
         self.model.add(Dropout(dropout))
         self.model.add(Dense(self.n_chars, activation='softmax'))
         self.model.compile(loss='categorical_crossentropy',
@@ -161,7 +163,7 @@ class Trumpeter(object):
     def train_model(self, batch_size = 1028, nb_epoch=7,
             hidden_layer_size = 128, dropout = 0.1, lr = 0.005,
             decay=0.0, continuation = False, max_seq = 40,
-            seq_step = 3):
+            seq_step = 3, stateful = False):
         """
         Train the model, obviously
         """
@@ -185,14 +187,21 @@ class Trumpeter(object):
                 self.one_hot_encode()
             if not self.model:
                 self.model_creation(hidden_layer_size = hidden_layer_size,
-                        dropout = dropout, lr = lr, decay = decay)
+                        dropout = dropout, lr = lr, decay = decay, 
+                        shuffle = shuffle, stateful = stateful)
 
             if continuation == True:
                 self.model.load_weights('weights.hdf5')
             checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
                     monitor='loss', save_best_only=True, mode='min')
-            self.model.fit(self.X, self.y,batch_size=batch_size, 
-                    epochs=nb_epoch, callbacks=[checkpoint])
+            if stateful == True:
+                self.model.fit(self.X, self.y,batch_size=batch_size, 
+                        epochs=nb_epoch, callbacks=[checkpoint],
+                        shuffle = False)
+            else:
+                self.model.fit(self.X, self.y,batch_size=batch_size, 
+                        epochs=nb_epoch, callbacks=[checkpoint])
+
             
 
 
