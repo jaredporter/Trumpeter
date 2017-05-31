@@ -30,7 +30,7 @@ class Trumpeter(object):
 
     def __init__(self, filepath, batch_size=1028, hidden_layer_size=512,
             dropout=0.2, lr=0.005, decay=0.0, nb_epoch=10,
-            stateful=False, continuation=False, max_seq=40, seq_step=3
+            stateful=False, continuation=False, max_seq=40, seq_step=3,
             tweets_only=False):
         self.batch_size = batch_size
         self.hidden_layer_size = hidden_layer_size
