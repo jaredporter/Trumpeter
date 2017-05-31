@@ -224,7 +224,7 @@ class Trumpeter(object):
                         shuffle = False)
             else:
                 self.model.fit(self.X, self.y,
-                        self.batch_size=batch_size, 
+                        batch_size=self.batch_size, 
                         epochs=self.nb_epoch, 
                         callbacks=[checkpoint, resets])
 
