@@ -179,7 +179,7 @@ class Trumpeter(object):
                 optimizer=RMSprop(lr=self.lr, decay=self.decay))
        
 
-    def train_model(self)
+    def train_model(self):
         """
         Train the model, obviously
         """
