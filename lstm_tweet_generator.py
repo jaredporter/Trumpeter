@@ -28,7 +28,21 @@ class Trumpeter(object):
     Their repo is: https://github.com/bpb27/trump_tweet_data_archive
     """
 
-    def __init__(self, filepath):
+    def __init__(self, filepath, batch_size=1028, hidden_layer_size=512,
+            dropout=0.2, lr=0.005, decay=0.0, nb_epoch=10,
+            stateful=False, continuation=False, max_seq=40, seq_step=3
+            tweets_only=False):
+        self.batch_size = batch_size
+        self.hidden_layer_size = hidden_layer_size
+        self.dropout = dropout
+        self.lr = lr
+        self.decay = decay
+        self.nb_epoch = nb_epoch
+        self.stateful = stateful
+        self.continuation = continuation
+        self.max_seq = max_seq
+        self.seq_step = seq_step
+        self.tweets_only = tweets_only
         self.seed = np.random.seed(42) 
         self.corpus = []
         self.generated_tweets = []
@@ -48,7 +62,7 @@ class Trumpeter(object):
         self.model = None
 
 
-    def trump_loader(self, tweets_only=False):
+    def trump_loader(self):
         """
         Funciton to load in tweets into list. Each element is a tweet
         that's been clenaed and only the text has been pulled out.
@@ -57,7 +71,7 @@ class Trumpeter(object):
         """
         # Read in tweets
         for file in os.listdir(self.filepath):
-            if file.endswith(".txt") and tweets_only == False:
+            if file.endswith(".txt") and self.tweets_only == False:
                 with open(os.path.join(self.filepath, file)) as f:
                     self.corpus.append(f.read())
             elif file.endswith(".json"):
@@ -106,7 +120,7 @@ class Trumpeter(object):
         self.idx_to_char = {i: c for i, c in enumerate(self.chars)}
 
 
-    def sentence_creation(self, max_seq = 40, seq_step = 3):
+    def sentence_creation(self):
         """
         Create the sentences for training. Keras docs use these params:
             max_seq = 40
@@ -114,9 +128,6 @@ class Trumpeter(object):
         Making steps or lengths shorter will result in longer training
         time, but on a GPU it shouldn't be prohibitively expensive.
         """
-        self.max_seq = max_seq
-        self.seq_step = seq_step
-
         for i in range(0, (self.corp_len - self.max_seq), self.seq_step):
             self.sequences.append(self.corpus[i:i + self.max_seq])
             self.next_chars.append(self.corpus[i + self.max_seq])
@@ -140,8 +151,7 @@ class Trumpeter(object):
             self.y[i, self.char_to_idx[self.next_chars[i]]] = 1
 
 
-    def model_creation(self, hidden_layer_size = 512, dropout = 0.2,
-            lr = 0.01, decay=0.0, stateful = False):
+    def model_creation(self, decay=0.0, stateful = False):
         """
         placeholder
         """
@@ -149,20 +159,29 @@ class Trumpeter(object):
         self.dropout = dropout
         self.lr = lr
         self.model = Sequential()
-        if stateful == False:
-            self.model.add(LSTM(hidden_layer_size, return_sequences=True, 
+        if self.stateful == False:
+            self.model.add(LSTM(self.hidden_layer_size,
+                return_sequences=True, 
                 input_shape = (self.max_seq, self.n_chars))) 
         else:
-            self.model.add(LSTM(hidden_layer_size, return_sequences=True, 
+            self.model.add(LSTM(self.hidden_layer_size, 
+                return_sequences=False, 
                 batch_input_shape = (self.max_seq, self.n_chars),
                 stateful = True)) 
-        self.model.add(Dropout(dropout))
-        self.model.add(LSTM(hidden_layer_size, return_sequences=False,
-            stateful = stateful))
-        self.model.add(Dropout(dropout))
+        self.model.add(Dropout(self.dropout))
+        if self.stateful == False:
+            self.model.add(LSTM(self.hidden_layer_size,
+                return_sequences=False, 
+                input_shape = (self.max_seq, self.n_chars))) 
+        else:
+            self.model.add(LSTM(self.hidden_layer_size, 
+                return_sequences=False, 
+                batch_input_shape = (self.max_seq, self.n_chars),
+                stateful = True)) 
+        self.model.add(Dropout(self.dropout))
         self.model.add(Dense(self.n_chars, activation='softmax'))
         self.model.compile(loss='categorical_crossentropy',
-                optimizer=RMSprop(lr=lr, decay=decay))
+                optimizer=RMSprop(lr=self.lr, decay=self.decay))
        
 
     def train_model(self, batch_size = 1028, nb_epoch=7,
@@ -186,29 +205,28 @@ class Trumpeter(object):
             if not self.char_to_idx:
                 self.create_mappings()
             if not self.sequences:
-                self.sentence_creation(max_seq = max_seq,
-                        seq_step = seq_step)
+                self.sentence_creation()
             if not self.y:
                 self.one_hot_encode()
             if not self.model:
-                self.model_creation(hidden_layer_size = hidden_layer_size,
-                        dropout = dropout, lr = lr, decay = decay, 
-                        stateful = stateful)
+                self.model_creation()
 
-            if continuation == True:
+            if self.continuation == True:
                 self.model.load_weights('weights.hdf5')
             checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
                     monitor='loss', save_best_only=True, mode='min')
             resets = Reset_States_Callback()
-            if stateful == True:
-                self.model.fit(self.X, self.y,batch_size=batch_size, 
-                        epochs=nb_epoch, callbacks=[checkpoint, resets],
+            if self.stateful == True:
+                self.model.fit(self.X, self.y,
+                        batch_size=self.batch_size, 
+                        epochs=self.nb_epoch, 
+                        callbacks=[checkpoint, resets],
                         shuffle = False)
             else:
-                self.model.fit(self.X, self.y,batch_size=batch_size, 
-                        epochs=nb_epoch, callbacks=[checkpoint, resets])
-
-            
+                self.model.fit(self.X, self.y,
+                        self.batch_size=batch_size, 
+                        epochs=self.nb_epoch, 
+                        callbacks=[checkpoint, resets])
 
 
     def sample(self, preds):
