@@ -161,7 +161,8 @@ class Trumpeter(object):
         else:
             self.model.add(LSTM(self.hidden_layer_size, 
                 return_sequences=False, 
-                batch_input_shape = (self.max_seq, self.n_chars),
+                batch_input_shape = (self.batch_size, 
+                    self.max_seq, self.n_chars),
                 stateful = True)) 
         self.model.add(Dropout(self.dropout))
         if self.stateful == False:
@@ -170,8 +171,7 @@ class Trumpeter(object):
                 input_shape = (self.max_seq, self.n_chars))) 
         else:
             self.model.add(LSTM(self.hidden_layer_size, 
-                return_sequences=False, 
-                batch_input_shape = (self.max_seq, self.n_chars),
+                return_sequences=True, 
                 stateful = True)) 
         self.model.add(Dropout(self.dropout))
         self.model.add(Dense(self.n_chars, activation='softmax'))
