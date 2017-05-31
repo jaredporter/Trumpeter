@@ -149,13 +149,10 @@ class Trumpeter(object):
             self.y[i, self.char_to_idx[self.next_chars[i]]] = 1
 
 
-    def model_creation(self, decay=0.0, stateful = False):
+    def model_creation(self):
         """
         placeholder
         """
-        self.hidden_layer_size = hidden_layer_size
-        self.dropout = dropout
-        self.lr = lr
         self.model = Sequential()
         if self.stateful == False:
             self.model.add(LSTM(self.hidden_layer_size,
@@ -182,10 +179,7 @@ class Trumpeter(object):
                 optimizer=RMSprop(lr=self.lr, decay=self.decay))
        
 
-    def train_model(self, batch_size = 1028, nb_epoch=7,
-            hidden_layer_size = 512, dropout = 0.1, lr = 0.005,
-            decay=0.0, continuation = False, max_seq = 40,
-            seq_step = 3, stateful = False):
+    def train_model(self)
         """
         Train the model, obviously
         """
