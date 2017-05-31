@@ -53,8 +53,6 @@ class Trumpeter(object):
         self.idx_to_char = None
         self.n_chars = None
         self.corp_len = None
-        self.seq_step = None
-        self.max_seq = None
         self.sequences = []
         self.next_chars = []
         self.X = None
