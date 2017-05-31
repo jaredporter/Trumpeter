@@ -184,7 +184,7 @@ class Trumpeter(object):
         Train the model, obviously
         """
         try:
-            if continuation == True:
+            if self.continuation == True:
                 self.model.load_weights('weights.hdf5')
             checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
                     monitor='loss', save_best_only=True, mode='min')
