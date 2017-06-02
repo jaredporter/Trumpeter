@@ -151,9 +151,20 @@ class Trumpeter(object):
 
     def model_creation(self):
         """
-        placeholder
+        Depending on the stateful parameter, either create a stateful
+        LSTM, or a state-free LSTM. Both are structured as follows:
+            LSTM
+            Dropout
+            LSTM
+            Dropout
+            Dense
+        and then compiled using a softmax activation in the Dense
+        layer, categorical crossentropy as the loss measure, and
+        RMSprop as the optimisation function.
         """
+        # Start the model
         self.model = Sequential()
+        # If not stateful, build this version
         if self.stateful == False:
             self.model.add(LSTM(self.hidden_layer_size,
                 return_sequences=True, 
@@ -162,10 +173,7 @@ class Trumpeter(object):
             self.model.add(LSTM(self.hidden_layer_size,
                 return_sequences=False, 
                 input_shape = (self.max_seq, self.n_chars))) 
-            self.model.add(Dropout(self.dropout))
-            self.model.add(Dense(self.n_chars, activation='softmax'))
-            self.model.compile(loss='categorical_crossentropy',
-                optimizer=RMSprop(lr=self.lr, decay=self.decay))
+        # If stateful, build this version
         else:
             self.model.add(LSTM(self.hidden_layer_size,
                 input_shape = (self.max_seq, self.n_chars),
@@ -176,16 +184,19 @@ class Trumpeter(object):
             self.add(LSTM(self.hidden_layer_size,
                 return_sequences = False,
                 stateful = True))
-            model.add(Dropout = self.dropout)
-            model.add(Dense(self.n_chars, activation = 'softmax'))
-            model.compile(loss='categorical_crossentropy', 
-                    optimizer=RMSprop(lr=self.lr, decay=self.decay))
+        # Add the last dropout, dense layer, and then compile
+        model.add(Dropout = self.dropout)
+        model.add(Dense(self.n_chars, activation = 'softmax'))
+        model.compile(loss='categorical_crossentropy', 
+                optimizer=RMSprop(lr=self.lr, decay=self.decay))
        
 
     def train_model(self):
         """
         Train the model, obviously
         """
+        # Try to train the model, as if all the functions to generate
+        # the data have been run.
         try:
             if self.continuation == True:
                 self.model.load_weights('weights.hdf5')
@@ -194,6 +205,7 @@ class Trumpeter(object):
             self.model.fit(self.X, self.y,batch_size=batch_size, 
                     epochs=nb_epoch, callbacks=[checkpoint])
 
+        # If they haven't, run them
         except AttributeError:
             if not self.last_tweet:
                 self.trump_loader()
@@ -221,7 +233,7 @@ class Trumpeter(object):
                 self.model.fit(self.X, self.y,
                         batch_size=self.batch_size, 
                         epochs=self.nb_epoch, 
-                        callbacks=[checkpoint, resets])
+                        callbacks=[checkpoint])
 
 
     def sample(self, preds):
