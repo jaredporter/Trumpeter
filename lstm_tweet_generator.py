@@ -158,25 +158,28 @@ class Trumpeter(object):
             self.model.add(LSTM(self.hidden_layer_size,
                 return_sequences=True, 
                 input_shape = (self.max_seq, self.n_chars))) 
-        else:
-            self.model.add(LSTM(self.hidden_layer_size, 
-                return_sequences=False, 
-                batch_input_shape = (self.batch_size, 
-                    self.max_seq, self.n_chars),
-                stateful = True)) 
-        self.model.add(Dropout(self.dropout))
-        if self.stateful == False:
+            self.model.add(Dropout(self.dropout))
             self.model.add(LSTM(self.hidden_layer_size,
                 return_sequences=False, 
                 input_shape = (self.max_seq, self.n_chars))) 
-        else:
-            self.model.add(LSTM(self.hidden_layer_size, 
-                return_sequences=True, 
-                stateful = True)) 
-        self.model.add(Dropout(self.dropout))
-        self.model.add(Dense(self.n_chars, activation='softmax'))
-        self.model.compile(loss='categorical_crossentropy',
+            self.model.add(Dropout(self.dropout))
+            self.model.add(Dense(self.n_chars, activation='softmax'))
+            self.model.compile(loss='categorical_crossentropy',
                 optimizer=RMSprop(lr=self.lr, decay=self.decay))
+        else:
+            self.model.add(LSTM(self.hidden_layer_size,
+                input_shape = (self.max_seq, self.n_chars),
+                batch_size = self.batch_size,
+                return_sequences = True,
+                stateful = True))
+            self.add(Dropout(self.dropout))
+            self.add(LSTM(self.hidden_layer_size,
+                return_sequences = False,
+                stateful = True))
+            model.add(Dropout = self.dropout)
+            model.add(Dense(self.n_chars, activation = 'softmax'))
+            model.compile(loss='categorical_crossentropy', 
+                    optimizer=RMSprop(lr=self.lr, decay=self.decay))
        
 
     def train_model(self):
