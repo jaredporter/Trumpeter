@@ -58,6 +58,8 @@ class Trumpeter(object):
         self.X = None
         self.y = None
         self.model = None
+        self.checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
+                    monitor='loss', save_best_only=True, mode='min')
 
 
     def trump_loader(self):
@@ -191,49 +193,86 @@ class Trumpeter(object):
                 optimizer=RMSprop(lr=self.lr, decay=self.decay))
        
 
-    def train_model(self):
+    def preprocessing_and_model_creation(self):
         """
-        Train the model, obviously
+        Checks to see what has and hasn't been done and does what's
+        missing.
+        """
+        if not self.last_tweet:
+            self.trump_loader()
+        if not self.char_to_idx:
+            self.create_mappings()
+        if not self.sequences:
+            self.sentence_creation()
+        if not self.y:
+            self.one_hot_encode()
+        if not self.model:
+            self.model_creation()
+
+
+    def train_stateless(self):
+        """
+        Training function for the stateless model
         """
         # Try to train the model, as if all the functions to generate
         # the data have been run.
         try:
             if self.continuation == True:
                 self.model.load_weights('weights.hdf5')
-            checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
-                    monitor='loss', save_best_only=True, mode='min')
             self.model.fit(self.X, self.y,batch_size=batch_size, 
-                    epochs=nb_epoch, callbacks=[checkpoint])
+                    epochs=nb_epoch, callbacks=[self.checkpoint])
 
         # If they haven't, run them
         except AttributeError:
-            if not self.last_tweet:
-                self.trump_loader()
-            if not self.char_to_idx:
-                self.create_mappings()
-            if not self.sequences:
-                self.sentence_creation()
-            if not self.y:
-                self.one_hot_encode()
-            if not self.model:
-                self.model_creation()
+            self.preprocessing_and_model_creation()
 
             if self.continuation == True:
                 self.model.load_weights('weights.hdf5')
-            checkpoint = ModelCheckpoint(filepath='weights.hdf5', 
-                    monitor='loss', save_best_only=True, mode='min')
-            resets = Reset_States_Callback()
-            if self.stateful == True:
+            self.model.fit(self.X, self.y,
+                    batch_size=self.batch_size, 
+                    epochs=self.nb_epoch, 
+                    callbacks=[self.checkpoint])
+
+
+    def train_stateful(self):
+        """
+        Training function for the stateless model
+        """
+        # Try to train the model, as if all the functions to generate
+        # the data have been run.
+        try:
+            if self.continuation == True:
+                self.model.load_weights('stateful_weights.hdf5')
+            for i in range(self.nb_epoch):
+                print('Epoch',(i+1),'/', self.nb_epoch)
                 self.model.fit(self.X, self.y,
-                        batch_size=self.batch_size, 
-                        epochs=self.nb_epoch, 
-                        callbacks=[checkpoint, resets],
+                        batch_size = self.batch_size,
+                        epochs = 1,
                         shuffle = False)
-            else:
+                self.model.reset_states()
+                model.save_weights('stateful_weights.hdf5')
+
+        # If they haven't, run them
+        except AttributeError:
+            self.preprocessing_and_model_creation()
+
+            if self.continuation == True:
+                self.model.load_weights('weights.hdf5')
+            for i in range(self.nb_epoch):
+                print('Epoch',(i+1),'/', self.nb_epoch)
                 self.model.fit(self.X, self.y,
-                        batch_size=self.batch_size, 
-                        epochs=self.nb_epoch, 
-                        callbacks=[checkpoint])
+                        batch_size = self.batch_size,
+                        epochs = 1,
+                        shuffle = False)
+                self.model.reset_states()
+                model.save_weights('stateful_weights.hdf5')
+
+
+    def run_training(self):
+        if self.stateful == True:
+            self.train_stateful()
+        else:
+            self.train_stateless()
 
 
     def sample(self, preds):
