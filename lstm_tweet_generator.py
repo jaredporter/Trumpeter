@@ -182,14 +182,14 @@ class Trumpeter(object):
                 batch_size = self.batch_size,
                 return_sequences = True,
                 stateful = True))
-            self.add(Dropout(self.dropout))
-            self.add(LSTM(self.hidden_layer_size,
+            self.model.add(Dropout(self.dropout))
+            self.model.add(LSTM(self.hidden_layer_size,
                 return_sequences = False,
                 stateful = True))
         # Add the last dropout, dense layer, and then compile
-        model.add(Dropout = self.dropout)
-        model.add(Dense(self.n_chars, activation = 'softmax'))
-        model.compile(loss='categorical_crossentropy', 
+        self.model.add(Dropout = self.dropout)
+        self.model.add(Dense(self.n_chars, activation = 'softmax'))
+        self.model.compile(loss='categorical_crossentropy', 
                 optimizer=RMSprop(lr=self.lr, decay=self.decay))
        
 
