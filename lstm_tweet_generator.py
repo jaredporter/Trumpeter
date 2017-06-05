@@ -191,9 +191,26 @@ class Trumpeter(object):
         self.model.add(Dense(self.n_chars, activation = 'softmax'))
         self.model.compile(loss='categorical_crossentropy', 
                 optimizer=RMSprop(lr=self.lr, decay=self.decay))
-       
 
-    def preprocessing_and_model_creation(self):
+
+    def stateful_generation_model_creation(self):
+        self.model.add(LSTM(self.hidden_layer_size,
+            input_shape = (self.max_seq, self.n_chars),
+            batch_size = 1,
+            return_sequences = True,
+            stateful = True))
+        self.model.add(Dropout(self.dropout))
+        self.model.add(LSTM(self.hidden_layer_size,
+            return_sequences = False,
+            stateful = True))
+        # Add the last dropout, dense layer, and then compile
+        self.model.add(Dropout(self.dropout))
+        self.model.add(Dense(self.n_chars, activation = 'softmax'))
+        self.model.compile(loss='categorical_crossentropy', 
+                optimizer=RMSprop(lr=self.lr, decay=self.decay))
+
+
+    def preprocessing_and_model_creation(self, generating = False):
         """
         Checks to see what has and hasn't been done and does what's
         missing.
@@ -206,8 +223,10 @@ class Trumpeter(object):
             self.sentence_creation()
         if not self.y:
             self.one_hot_encode()
-        if not self.model:
+        if not self.model and (stateful == False or generating == False):
             self.model_creation()
+        elif not self.model and stateful == True and generating == True:
+            self.stateful_generation_model_creation()
 
 
     def train_stateless(self):
@@ -320,16 +339,7 @@ class Trumpeter(object):
             return tweet
 
         except AttributeError:
-            if not self.last_tweet:
-                self.trump_loader()
-            if not self.char_to_idx:
-                self.create_mappings()
-            if not self.sequences:
-                self.sentence_creation()
-            if not self.y:
-                self.one_hot_encode()
-            if not self.model:
-                self.model_creation()
+            self.preprocessing_and_model_creation()
             # Load in our model's weights
             self.model.load_weights(weights)
             # This finds a space in the corpus and then makes the seed
