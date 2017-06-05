@@ -187,7 +187,7 @@ class Trumpeter(object):
                 return_sequences = False,
                 stateful = True))
         # Add the last dropout, dense layer, and then compile
-        self.model.add(Dropout = self.dropout)
+        self.model.add(Dropout(self.dropout))
         self.model.add(Dense(self.n_chars, activation = 'softmax'))
         self.model.compile(loss='categorical_crossentropy', 
                 optimizer=RMSprop(lr=self.lr, decay=self.decay))
