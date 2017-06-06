@@ -313,18 +313,12 @@ class Trumpeter(object):
         inputs from new tweets and generate things, but one thing at a
         time
         """
+        tweet = u''
+        sequence = seed
+        tweet += sequence
         try:
             # Load in our model's weights
             self.model.load_weights(weights)
-            # # This finds a space in the corpus and then makes the seed from there
-            # spaces_in_corpus = np.array([idx for idx in range(self.corp_len) 
-            #     if self.corpus[idx] == ' '])
-            # # Make the tweet, one letter at a time
-            # begin = np.random.choice(spaces_in_corpus)
-            tweet = u''
-            # sequence = self.corpus[begin:begin + self.max_seq]
-            sequence = seed
-            tweet += sequence
             for _ in range(text_len):
                 x = np.zeros((1, self.max_seq, self.n_chars))
                 for t, char in enumerate(sequence):
@@ -342,16 +336,6 @@ class Trumpeter(object):
             self.preprocessing_and_model_creation()
             # Load in our model's weights
             self.model.load_weights(weights)
-            # This finds a space in the corpus and then makes the seed
-            # from there
-            spaces_in_corpus = np.array([idx for idx in
-                range(self.corp_len) if self.corpus[idx] == ' '])
-            # Make the tweet, one letter at a time
-            # begin = np.random.choice(spaces_in_corpus)
-            tweet = u''
-            # sequence = self.corpus[begin:begin + self.max_seq]
-            sequence = seed
-            tweet += sequence
             for _ in range(text_len):
                 x = np.zeros((1, self.max_seq, self.n_chars))
                 for t, char in enumerate(sequence):
