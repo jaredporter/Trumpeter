@@ -194,6 +194,7 @@ class Trumpeter(object):
 
 
     def stateful_generation_model_creation(self):
+        self.model = Sequential()
         self.model.add(LSTM(self.hidden_layer_size,
             input_shape = (self.max_seq, self.n_chars),
             batch_size = 1,
@@ -223,9 +224,9 @@ class Trumpeter(object):
             self.sentence_creation()
         if not self.y:
             self.one_hot_encode()
-        if not self.model and (stateful == False or generating == False):
+        if not self.model and (self.stateful == False or generating == False):
             self.model_creation()
-        elif not self.model and stateful == True and generating == True:
+        elif not self.model and self.stateful == True and generating == True:
             self.stateful_generation_model_creation()
 
 
@@ -330,6 +331,8 @@ class Trumpeter(object):
 
                 tweet += next_char
                 sequence = sequence[1:] + next_char
+                if self.stateful == True:
+                    self.model.reset_states()
             return tweet
 
         except AttributeError:
@@ -347,6 +350,8 @@ class Trumpeter(object):
 
                 tweet += next_char
                 sequence = sequence[1:] + next_char
+                if self.stateful == True:
+                    self.model.reset_states()
             return tweet
 
 
