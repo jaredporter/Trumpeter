@@ -263,29 +263,35 @@ class Trumpeter(object):
         try:
             if self.continuation == True:
                 self.model.load_weights('stateful_weights.hdf5')
-            for i in range(self.nb_epoch):
-                print('Epoch',(i+1),'/', self.nb_epoch)
-                self.model.fit(self.X, self.y,
-                        batch_size = self.batch_size,
-                        epochs = 1,
-                        shuffle = False)
-                self.model.reset_states()
-                model.save_weights('stateful_weights.hdf5')
+            # for i in range(self.nb_epoch):
+            #     print('Epoch',(i+1),'/', self.nb_epoch)
+            #     self.model.fit(self.X, self.y,
+            #             batch_size = self.batch_size,
+            #             epochs = 1,
+            #             shuffle = False)
+            #     self.model.reset_states()
+            #     model.save_weights('stateful_weights.hdf5')
+            self.model.fit(self.X, self.y, batch_size = self.batch_size,
+                    nb_epoch = self.nb_epoch, shuffle = False, 
+                    callbacks = [self.checkpoint])
 
         # If they haven't, run them
         except AttributeError:
             self.preprocessing_and_model_creation()
 
             if self.continuation == True:
-                self.model.load_weights('weights.hdf5')
-            for i in range(self.nb_epoch):
-                print('Epoch',(i+1),'/', self.nb_epoch)
-                self.model.fit(self.X, self.y,
-                        batch_size = self.batch_size,
-                        epochs = 1,
-                        shuffle = False)
-                self.model.reset_states()
-                model.save_weights('stateful_weights.hdf5')
+                self.model.load_weights('stateful_weights.hdf5')
+            # for i in range(self.nb_epoch):
+            #     print('Epoch',(i+1),'/', self.nb_epoch)
+            #     self.model.fit(self.X, self.y,
+            #             batch_size = self.batch_size,
+            #             epochs = 1,
+            #             shuffle = False)
+            #     self.model.reset_states()
+            #     model.save_weights('stateful_weights.hdf5')
+            self.model.fit(self.X, self.y, batch_size = self.batch_size,
+                    nb_epoch = self.nb_epoch, shuffle = False, 
+                    callbacks = [self.checkpoint])
 
 
     def run_training(self):
