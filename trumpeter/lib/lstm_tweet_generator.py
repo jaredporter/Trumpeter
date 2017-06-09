@@ -14,7 +14,7 @@ from itertools import chain
 from six.moves import reduce
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import pairwise_distances
-from Reset_States_Callback import *
+from lib.Reset_States_Callback import *
 import os
 import re
 from collections import Counter
