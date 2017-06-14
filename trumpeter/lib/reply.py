@@ -3,6 +3,7 @@ from nltk import pos_tag
 from string import punctuation
 import enchant
 import re
+from random import randrange
 
 class create_reply(object):
     """
@@ -11,17 +12,43 @@ class create_reply(object):
     the tweet.
     """
 
-    def __ini__(self, Trumpeter):
+    def __init__(self, trumpeter, initial_tweet):
         self.initial_tweet = initial_tweet
         self.vocab = vocab
         self.replying_to = []
         self.hashtags = None
         self.seed = None
         self.tweet = None
-        self.trumpeter = Trumpeter
+        self.trumpeter = trumpeter
 
 
-    def create_seed(self):
+    def reset(self, new_tweet):
+        self.initial_tweet = new_tweet
+        self.replying_to = []
+        self.hashtags = None
+        self.seed = None
+        self.tweet = None
+
+
+    def create_seed_simple(self):
+        # Save the handle we're replying to
+        author = self.initial_tweet['user']['screen_name']
+        author = "@" + author 
+        self.replying_to.append(author)
+        self.hashtags = self.initial_tweet['entities']['hashtags']
+        # Get the text of the tweet we're replying to
+        text = self.initial_tweet['text']
+        handles_regex = re.compile(r"(?<=^|(?<=[^a-zA-Z0-9-_\.]))(@[A-Za-z]+[A-Za-z0-9]+)")
+        for h in handles_regex.findall(text):
+            self.replying_to.append(h)
+        # Tokenise the text and remove handles, hashtags, and urls
+        text = [s.translate(str.maketrans('','',punctuation)) for s in 
+                text.split() if not s.startswith(('#','@','http'))]
+        start_point = randrange(len(text))        
+        self.seed = text[start_point: start_point + 40]
+
+    
+    def create_seed_complex(self):
         # Save the handle we're replying to
         author = self.initial_tweet['user']['screen_name']
         author = "@" + author 
@@ -84,7 +111,7 @@ class create_reply(object):
         # Put it all together
         self.tweet = first_bit + self.tweet
         spell_check = enchant.Dict("en_us")
-        last_word = self.tweet.split()[-1]) 
+        last_word = self.tweet.split()[-1] 
         if spell_check.check(last_word): 
             self.tweet += hashtag
         else:

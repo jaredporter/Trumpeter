@@ -14,7 +14,7 @@ from itertools import chain
 from six.moves import reduce
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import pairwise_distances
-from lib.Reset_States_Callback import *
+from Reset_States_Callback import *
 import os
 import re
 from collections import Counter
@@ -31,7 +31,7 @@ class Trumpeter(object):
     def __init__(self, filepath, batch_size=1028, hidden_layer_size=512,
             dropout=0.2, lr=0.005, decay=0.0, nb_epoch=10,
             stateful=False, continuation=False, max_seq=40, seq_step=3,
-            tweets_only=False):
+            tweets_only=False, RESET = True):
         self.batch_size = batch_size
         self.hidden_layer_size = hidden_layer_size
         self.dropout = dropout
@@ -43,6 +43,7 @@ class Trumpeter(object):
         self.max_seq = max_seq
         self.seq_step = seq_step
         self.tweets_only = tweets_only
+        self.RESET = RESET
         self.seed = np.random.seed(42) 
         self.corpus = []
         self.generated_tweets = []
@@ -356,7 +357,7 @@ class Trumpeter(object):
 
                 tweet += next_char
                 sequence = sequence[1:] + next_char
-                if self.stateful == True:
+                if self.stateful == True and self.RESET == True:
                     self.model.reset_states()
             return tweet
 
